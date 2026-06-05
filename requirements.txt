@@ -2,3 +2,5 @@ flask
 numpy
 sympy
 gunicorn
+pytest
+pytest-cov
