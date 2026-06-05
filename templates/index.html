@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Ordinary Solver</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <script defer src="https://unpkg.com/mathlive"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjs@12.4.2/lib/browser/math.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="min-h-screen transition-colors duration-200">
+<div class="container mx-auto px-4 py-6 max-w-6xl">
+
+    <!-- ===== Header ===== -->
+    <header class="relative flex justify-center items-center mb-4">
+        <div class="grid grid-flow-col gap-2 items-end">
+            <span class="text-accent font-black text-2xl select-none leading-[0.8]">&#8747;</span>
+            <h1 class="text-2xl font-extrabold tracking-tight uppercase leading-[0.8]">The Ordinary Solver</h1>
+            <span class="text-accent font-bold text-xl tracking-wider select-none lowercase mono leading-[0.8]">dx</span>
+        </div>
+        <button id="theme-toggle" class="absolute right-0 text-xs px-3 py-1.5 border rounded cursor-pointer wolfram-theme-btn">Toggle Theme</button>
+    </header>
+</div>
+
+<!-- ===== Sticky tab bar (full width) ===== -->
+<nav class="tab-bar">
+    <div class="container mx-auto px-4 max-w-6xl flex gap-1 overflow-x-auto">
+        <button class="tab-btn active" data-tab="ode">ODE Solver</button>
+        <button class="tab-btn" data-tab="deriv">Derivative</button>
+        <button class="tab-btn" data-tab="integral">Integral</button>
+        <button class="tab-btn" data-tab="sci">Scientific</button>
+        <button class="tab-btn" data-tab="graph">Graphing</button>
+        <button class="tab-btn" data-tab="surface">3D Surface</button>
+        <button class="tab-btn" data-tab="lsrl">LSRL</button>
+        <button class="tab-btn" data-tab="fit">Nonlinear Fit</button>
+    </div>
+</nav>
+
+<div class="container mx-auto px-4 py-6 max-w-6xl">
+
+    <!-- ====================================================== -->
+    <!-- TAB 1 - ODE SOLVER                                      -->
+    <!-- ====================================================== -->
+    <section id="tab-ode" class="tab-panel active space-y-6">
+        <div class="wolfram-card border rounded shadow-sm p-4 space-y-4">
+            <div class="flex justify-between items-center">
+                <span class="field-label">Differential Equation</span>
+                <span class="live-badge">live</span>
+            </div>
+            <div class="flex flex-col md:flex-row items-stretch gap-4">
+                <div class="flex-1 space-y-3">
+                    <div class="flex items-center gap-2">
+                        <span id="eq1-label" class="font-bold mono text-lg w-12 text-right hidden">y' =</span>
+                        <div class="flex-1 border rounded wolfram-card flex items-center px-2 focus-ring">
+                            <math-field id="eq1-mathfield" class="w-full text-lg outline-none" placeholder="e.g.  y'' + 3y' + 4y = 0">y'' + 4y = 0</math-field>
+                        </div>
+                    </div>
+                    <div id="eq2-container" class="flex items-center gap-2 hidden">
+                        <span id="eq2-label" class="font-bold mono text-lg w-12 text-right">y' =</span>
+                        <div class="flex-1 border rounded wolfram-card flex items-center px-2 focus-ring">
+                            <math-field id="eq2-mathfield" class="w-full text-lg outline-none">x - y</math-field>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="font-bold mono text-sm w-auto md:w-12 text-right text-muted-c">f(x)&#8767;</span>
+                <div class="flex-1 border rounded wolfram-sunken flex items-center px-2 focus-ring">
+                    <math-field id="check-mathfield" class="w-full text-base outline-none" placeholder="optional: type a candidate solution, e.g. cos(2x)"></math-field>
+                </div>
+                <span id="check-verdict" class="text-xs mono whitespace-nowrap"></span>
+            </div>
+            <div class="wolfram-sunken border p-3 rounded flex justify-center items-center min-h-[60px] overflow-x-auto" id="analytical-preview">
+                <span class="text-muted-c text-sm">Parsed equation will appear here</span>
+            </div>
+            <div id="ode-status" class="text-xs text-muted-c mono"></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div class="wolfram-card border p-3 rounded">
+                <label class="field-label mb-2">Equation Mode</label>
+                <select id="mode-select" class="w-full p-1.5 text-sm border rounded mono bg-transparent">
+                    <option value="single">Single ODE</option>
+                    <option value="system">System (x', y')</option>
+                </select>
+            </div>
+            <div class="wolfram-card border p-3 rounded">
+                <label id="indep0-label" class="field-label mb-1">Start x&#8320;</label>
+                <input id="indep0-input" type="number" step="any" class="w-full p-1.5 text-sm border rounded mono bg-transparent" value="0">
+            </div>
+            <div class="wolfram-card border p-3 rounded">
+                <label id="dep1-label" class="field-label mb-1">Init y&#8320;</label>
+                <input id="dep1-input" type="number" step="any" class="w-full p-1.5 text-sm border rounded mono bg-transparent" value="1">
+            </div>
+            <div id="dep2-container" class="wolfram-card border p-3 rounded hidden">
+                <label id="dep2-label" class="field-label mb-1">Init y'&#8320;</label>
+                <input id="dep2-input" type="number" step="any" class="w-full p-1.5 text-sm border rounded mono bg-transparent" value="0">
+            </div>
+            <div class="wolfram-card border p-3 rounded">
+                <label id="independ-label" class="field-label mb-1">End x</label>
+                <input id="independ-input" type="number" step="any" class="w-full p-1.5 text-sm border rounded mono bg-transparent" value="10">
+            </div>
+        </div>
+
+        <div id="graphs-wrapper" class="grid grid-cols-1 gap-4">
+            <div class="wolfram-card border rounded shadow-sm p-2 h-[400px]">
+                <div id="graph-canvas-1" class="w-full h-full"></div>
+            </div>
+            <div id="graph-canvas-2-container" class="wolfram-card border rounded shadow-sm p-2 h-[400px] hidden">
+                <div id="graph-canvas-2" class="w-full h-full"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====================================================== -->
+    <!-- TAB - DERIVATIVE                                        -->
+    <!-- ====================================================== -->
+    <section id="tab-deriv" class="tab-panel space-y-4">
+        <div class="wolfram-card border rounded shadow-sm p-4 space-y-4">
+            <span class="field-label">Symbolic Differentiation</span>
+            <div class="flex flex-col md:flex-row items-stretch gap-3">
+                <div class="flex-1 border rounded wolfram-card flex items-center px-2 focus-ring min-h-[52px]">
+                    <math-field id="deriv-input" class="w-full text-lg outline-none" placeholder="enter f, e.g.  sin(x^2)">sin(x^2)</math-field>
+                </div>
+                <button id="deriv-go" class="accent-btn rounded font-bold px-5 text-2xl md:w-16 flex items-center justify-center" title="Differentiate">&#8594;</button>
+                <div class="flex-1 border rounded wolfram-sunken flex items-center px-3 min-h-[52px] overflow-x-auto">
+                    <div id="deriv-result" class="w-full text-lg text-muted-c">result appears here</div>
+                </div>
+            </div>
+            <div id="deriv-controls" class="flex flex-wrap items-end gap-4 hidden">
+                <div>
+                    <label class="field-label mb-1">With respect to</label>
+                    <select id="deriv-var" class="p-1.5 text-sm border rounded mono bg-transparent"></select>
+                </div>
+                <div>
+                    <label class="field-label mb-1">Order</label>
+                    <select id="deriv-order" class="p-1.5 text-sm border rounded mono bg-transparent">
+                        <option value="1">1st</option><option value="2">2nd</option>
+                        <option value="3">3rd</option><option value="4">4th</option>
+                    </select>
+                </div>
+                <div id="deriv-plain" class="text-xs text-muted-c mono self-center"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====================================================== -->
+    <!-- TAB - INTEGRAL                                          -->
+    <!-- ====================================================== -->
+    <section id="tab-integral" class="tab-panel space-y-4">
+        <div class="wolfram-card border rounded shadow-sm p-4 space-y-4">
+            <div class="flex flex-wrap items-end gap-4">
+                <div>
+                    <label class="field-label mb-1">Integral type</label>
+                    <select id="int-kind" class="p-1.5 text-sm border rounded mono bg-transparent">
+                        <option value="single">Single &#8747;</option>
+                        <option value="double">Double &#8747;&#8747;</option>
+                        <option value="triple">Triple &#8747;&#8747;&#8747;</option>
+                        <option value="line">Line integral</option>
+                        <option value="flux">Flux integral</option>
+                    </select>
+                </div>
+                <div id="int-coords-wrap" class="hidden">
+                    <label class="field-label mb-1">Coordinates</label>
+                    <select id="int-coords" class="p-1.5 text-sm border rounded mono bg-transparent"></select>
+                </div>
+                <div id="int-sub-wrap" class="hidden">
+                    <label class="field-label mb-1" id="int-sub-label">Mode</label>
+                    <select id="int-sub" class="p-1.5 text-sm border rounded mono bg-transparent"></select>
+                </div>
+                <button id="int-go" class="accent-btn rounded font-bold uppercase text-sm px-6 py-2 ml-auto">Integrate</button>
+            </div>
+
+            <div id="int-form" class="space-y-3"></div>
+            <div id="int-status" class="text-xs text-muted-c mono"></div>
+        </div>
+
+        <div class="wolfram-card border rounded shadow-sm p-4 space-y-3">
+            <span class="field-label">Result</span>
+            <div id="int-setup" class="text-base overflow-x-auto text-muted-c"></div>
+            <div id="int-result" class="eqn-box overflow-x-auto">&#8230;</div>
+            <div id="int-numeric" class="mono text-sm"></div>
+        </div>
+    </section>
+
+    <!-- ====================================================== -->
+    <!-- TAB 2 - SCIENTIFIC CALCULATOR                           -->
+    <!-- ====================================================== -->
+    <section id="tab-sci" class="tab-panel">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div class="lg:col-span-2 wolfram-card border rounded shadow-sm p-4 space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="field-label">Scientific Calculator</span>
+                    <div class="deg-toggle" id="angle-toggle">
+                        <button data-angle="rad" class="active">RAD</button>
+                        <button data-angle="deg">DEG</button>
+                    </div>
+                </div>
+                <input id="calc-input" type="text" spellcheck="false"
+                       class="calc-screen w-full text-right text-2xl px-3 py-3 rounded mono" placeholder="0">
+                <div id="calc-result" class="calc-screen text-right text-lg px-3 py-2 rounded mono text-muted-c">= 0</div>
+                <div class="calc-grid">
+                    <button class="calc-key fn" data-ins="sin(">sin</button>
+                    <button class="calc-key fn" data-ins="cos(">cos</button>
+                    <button class="calc-key fn" data-ins="tan(">tan</button>
+                    <button class="calc-key util" data-act="clear">AC</button>
+                    <button class="calc-key util" data-act="del">DEL</button>
+                    <button class="calc-key fn" data-ins="asin(">sin&#8315;&#185;</button>
+                    <button class="calc-key fn" data-ins="acos(">cos&#8315;&#185;</button>
+                    <button class="calc-key fn" data-ins="atan(">tan&#8315;&#185;</button>
+                    <button class="calc-key op" data-ins="(">(</button>
+                    <button class="calc-key op" data-ins=")">)</button>
+                    <button class="calc-key fn" data-ins="ln(">ln</button>
+                    <button class="calc-key fn" data-ins="log10(">log</button>
+                    <button class="calc-key fn" data-ins="sqrt(">&#8730;</button>
+                    <button class="calc-key op" data-ins="^">x^y</button>
+                    <button class="calc-key op" data-ins="/">&#247;</button>
+                    <button class="calc-key" data-ins="7">7</button>
+                    <button class="calc-key" data-ins="8">8</button>
+                    <button class="calc-key" data-ins="9">9</button>
+                    <button class="calc-key fn" data-ins="!">n!</button>
+                    <button class="calc-key op" data-ins="*">&#215;</button>
+                    <button class="calc-key" data-ins="4">4</button>
+                    <button class="calc-key" data-ins="5">5</button>
+                    <button class="calc-key" data-ins="6">6</button>
+                    <button class="calc-key fn" data-ins="pi">&#960;</button>
+                    <button class="calc-key op" data-ins="-">&#8722;</button>
+                    <button class="calc-key" data-ins="1">1</button>
+                    <button class="calc-key" data-ins="2">2</button>
+                    <button class="calc-key" data-ins="3">3</button>
+                    <button class="calc-key fn" data-ins="e">e</button>
+                    <button class="calc-key op" data-ins="+">+</button>
+                    <button class="calc-key wide" data-ins="0">0</button>
+                    <button class="calc-key" data-ins=".">.</button>
+                    <button class="calc-key util" data-ins="ans">Ans</button>
+                    <button class="calc-key equals" data-act="eval">=</button>
+                </div>
+            </div>
+            <div class="wolfram-card border rounded shadow-sm p-4 flex flex-col">
+                <span class="field-label mb-2">History</span>
+                <div id="calc-history" class="flex-1 overflow-y-auto space-y-2 text-sm mono"></div>
+                <button id="calc-clear-history" class="mt-3 text-xs wolfram-theme-btn border rounded py-1.5">Clear history</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====================================================== -->
+    <!-- TAB 3 - GRAPHING CALCULATOR (2D)                        -->
+    <!-- ====================================================== -->
+    <section id="tab-graph" class="tab-panel space-y-4">
+        <div class="wolfram-card border rounded shadow-sm p-4 space-y-3">
+            <div class="flex justify-between items-center">
+                <span class="field-label">Functions &nbsp; y = f(x)</span>
+                <div class="flex items-center gap-3">
+                    <span class="live-badge">live</span>
+                    <button id="add-func" class="text-xs accent-btn rounded px-3 py-1.5 font-bold">+ Add function</button>
+                </div>
+            </div>
+            <div id="func-list" class="space-y-2"></div>
+            <div class="grid grid-cols-3 gap-3 pt-2 border-t" style="border-color:var(--border-soft)">
+                <div><label class="field-label mb-1">x min</label>
+                    <input id="g-xmin" type="number" step="any" value="-10" class="w-full p-1.5 text-sm border rounded mono bg-transparent"></div>
+                <div><label class="field-label mb-1">x max</label>
+                    <input id="g-xmax" type="number" step="any" value="10" class="w-full p-1.5 text-sm border rounded mono bg-transparent"></div>
+                <div><label class="field-label mb-1">Samples</label>
+                    <input id="g-samples" type="number" step="1" value="800" class="w-full p-1.5 text-sm border rounded mono bg-transparent"></div>
+            </div>
+            <div id="graph-2d-status" class="text-xs text-muted-c mono"></div>
+        </div>
+        <div class="wolfram-card border rounded shadow-sm p-2 h-[460px]">
+            <div id="graph-2d-canvas" class="w-full h-full"></div>
+        </div>
+    </section>
+
+    <!-- ====================================================== -->
+    <!-- TAB 4 - 3D SURFACE                                      -->
+    <!-- ====================================================== -->
+    <section id="tab-surface" class="tab-panel space-y-4">
+        <div class="wolfram-card border rounded shadow-sm p-4 space-y-3">
+            <div class="flex justify-between items-center">
+                <span class="field-label">Surface &nbsp; z = f(x, y)</span>
+                <span class="live-badge">live</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="font-bold mono text-lg w-16 text-right">z =</span>
+                <input id="surf-expr" type="text" spellcheck="false" value="sin(sqrt(x^2 + y^2))"
+                       class="flex-1 p-2 text-lg border rounded mono bg-transparent">
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                <div><label class="field-label mb-1">x min</label>
+                    <input id="s-xmin" type="number" step="any" value="-5" class="w-full p-1.5 text-sm border rounded mono bg-transparent"></div>
+                <div><label class="field-label mb-1">x max</label>
+                    <input id="s-xmax" type="number" step="any" value="5" class="w-full p-1.5 text-sm border rounded mono bg-transparent"></div>
+                <div><label class="field-label mb-1">y min</label>
+                    <input id="s-ymin" type="number" step="any" value="-5" class="w-full p-1.5 text-sm border rounded mono bg-transparent"></div>
+                <div><label class="field-label mb-1">y max</label>
+                    <input id="s-ymax" type="number" step="any" value="5" class="w-full p-1.5 text-sm border rounded mono bg-transparent"></div>
+                <div><label class="field-label mb-1">Resolution</label>
+                    <input id="s-res" type="number" step="1" value="55" class="w-full p-1.5 text-sm border rounded mono bg-transparent"></div>
+            </div>
+            <div id="graph-3d-status" class="text-xs text-muted-c mono"></div>
+        </div>
+        <div class="wolfram-card border rounded shadow-sm p-2 h-[520px]">
+            <div id="graph-3d-canvas" class="w-full h-full"></div>
+        </div>
+    </section>
+
+    <!-- ====================================================== -->
+    <!-- TAB 5 - LSRL                                            -->
+    <!-- ====================================================== -->
+    <section id="tab-lsrl" class="tab-panel space-y-4">
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+            <div class="lg:col-span-2 wolfram-card border rounded shadow-sm p-4 space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="field-label">Data &nbsp; (x, y per line)</span>
+                    <span class="live-badge">live</span>
+                </div>
+                <textarea id="lsrl-data" rows="12" spellcheck="false"
+                    class="data-area w-full p-3 rounded mono text-sm">1, 2.1
+2, 3.9
+3, 6.2
+4, 7.8
+5, 10.1
+6, 12.0
+7, 13.9</textarea>
+                <p class="text-xs text-muted-c">Separate x and y with a comma, space, or tab.</p>
+            </div>
+            <div class="lg:col-span-3 space-y-4">
+                <div class="wolfram-card border rounded shadow-sm p-4 space-y-3">
+                    <span class="field-label">Least-Squares Regression Line</span>
+                    <div id="lsrl-eqn" class="eqn-box">&#375; = &#8230;</div>
+                    <div class="stat-grid" id="lsrl-stats"></div>
+                    <div id="lsrl-status" class="text-xs text-muted-c mono"></div>
+                </div>
+                <div class="wolfram-card border rounded shadow-sm p-2 h-[360px]">
+                    <div id="lsrl-canvas" class="w-full h-full"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ====================================================== -->
+    <!-- TAB 6 - NONLINEAR FIT                                   -->
+    <!-- ====================================================== -->
+    <section id="tab-fit" class="tab-panel space-y-4">
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+            <div class="lg:col-span-2 wolfram-card border rounded shadow-sm p-4 space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="field-label">Data &nbsp; (x, y per line)</span>
+                    <span class="live-badge">live</span>
+                </div>
+                <textarea id="fit-data" rows="10" spellcheck="false"
+                    class="data-area w-full p-3 rounded mono text-sm">-3, 9.2
+-2, 4.1
+-1, 1.2
+0, 0.1
+1, 0.9
+2, 4.2
+3, 9.1</textarea>
+                <div>
+                    <label class="field-label mb-1">Model</label>
+                    <select id="fit-model" class="w-full p-1.5 text-sm border rounded mono bg-transparent">
+                        <option value="quad">Quadratic &nbsp; a x&#178; + b x + c</option>
+                        <option value="cubic">Cubic &nbsp; a x&#179; + &#8230;</option>
+                        <option value="exp">Exponential &nbsp; a&#183;e^(b x)</option>
+                        <option value="power">Power &nbsp; a&#183;x^b</option>
+                        <option value="log">Logarithmic &nbsp; a + b&#183;ln x</option>
+                    </select>
+                </div>
+            </div>
+            <div class="lg:col-span-3 space-y-4">
+                <div class="wolfram-card border rounded shadow-sm p-4 space-y-3">
+                    <span class="field-label">Fitted Model</span>
+                    <div id="fit-eqn" class="eqn-box">&#375; = &#8230;</div>
+                    <div class="stat-grid" id="fit-stats"></div>
+                    <div id="fit-status" class="text-xs text-muted-c mono"></div>
+                </div>
+                <div class="wolfram-card border rounded shadow-sm p-2 h-[360px]">
+                    <div id="fit-canvas" class="w-full h-full"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
