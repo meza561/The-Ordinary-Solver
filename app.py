@@ -557,4 +557,4 @@ def index():
 if __name__ == "__main__":
     # debug=False by default. Set FLASK_DEBUG=1 locally if you want the reloader;
     # never enable it in production (it exposes an interactive RCE console).
-    app.run(debug=bool(os.environ.get("FLASK_DEBUG")), port=5000)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False)
