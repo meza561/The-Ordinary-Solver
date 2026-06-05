@@ -530,7 +530,7 @@ def integrate_route():
             (vv, va, vb) = bnds[1]
             ru = sp.Matrix([sp.diff(sx, uv), sp.diff(sy, uv), sp.diff(sz, uv)])
             rv = sp.Matrix([sp.diff(sx, vv), sp.diff(sy, vv), sp.diff(sz, vv)])
-            n = ru.crgit oss(rv)
+            n = ru.cross(rv)
             sub = {x: sx, y: sy, z: sz}
             F = sp.Matrix([to_sympy(data.get("P", "0")).subs(sub),
                            to_sympy(data.get("Q", "0")).subs(sub),
