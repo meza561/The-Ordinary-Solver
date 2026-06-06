@@ -37,3 +37,44 @@ def test_y_double_prime_does_not_become_yddy():
     parsed = parse_expr(r"y^{\prime\prime}")
     assert "yddy" not in parsed
     assert parsed == "ddy"
+
+
+def test_exponent_braces():
+    r"""x^{2} should become x**(2) — explicit parens preserve precedence."""
+    assert parse_expr("x^{2}+1") == "x**(2)+1"
+
+
+def test_nested_sqrt_with_exponent():
+    r"""\sqrt{x^{2}+1} should parse correctly through both rules."""
+    assert parse_expr(r"\sqrt{x^{2}+1}") == "sqrt(x**(2)+1)"
+
+
+def test_backslash_sin_with_left_right():
+    r"""\sin\left(x\right) — full MathLive form — should yield sin(x)."""
+    assert parse_expr(r"\sin\left(x\right)") == "sin(x)"
+
+
+def test_nested_fractions():
+    r"""\frac{\frac{1}{x}}{y} exercises the iterative innermost-first frac rule."""
+    parsed = parse_expr(r"\frac{\frac{1}{x}}{y}")
+    assert parsed == "((((1)/(x)))/(y))"
+
+
+def test_log10_survives_implicit_multiplication():
+    """log10( has a digit before a paren but must not become log1*0*(.
+    This is the bug we deliberately shielded against."""
+    parsed = parse_expr("log10(x)")
+    assert "log1*0" not in parsed
+    assert "log10(x)" in parsed
+
+
+def test_implicit_multiplication_paren_paren():
+    """)( should become )*( so things like (x+1)(y+1) parse correctly."""
+    assert "*" in parse_expr("(x+1)(y+1)")
+
+
+def test_greek_theta_phi_rho():
+    r"""LaTeX Greek letters used in coordinate systems should de-backslash."""
+    assert "theta" in parse_expr(r"\sin(\theta)")
+    assert "phi" in parse_expr(r"\cos(\phi)")
+    assert "rho" in parse_expr(r"\rho^{2}")
