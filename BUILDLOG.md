@@ -36,3 +36,23 @@ then a real merge commit (got trapped by vim briefly, escaped via `:wq`,
 configured a friendlier editor for next time). Pushed everything.
 
 **Coverage:** 25% · **Tests:** 24 passing · **Commits on master:** 5
+
+### June 7 — Day 4: ODE solver tests
+Created `ode-tests` branch and wrote 13 tests verifying the RK4 integrator
+against classical analytical solutions. Coverage jumped from 25% to 57% in
+a single file — the mathematical core is now verified end-to-end.
+
+What's now tested and locked down:
+- First-order: `y' = y` → e, `y' = x/y` → sqrt(x²+1)
+- Second-order: `y'' + 4y = 0` → cos(2x), `y'' - y = 0` → e^x
+- 2D system: circular motion (x'=y, y'=-x) returns to start after 2π
+- Order auto-detection (1 vs 2) from open-form input
+- Backward integration via copysign (regression test for the abs() bug)
+- Step cap of 200k preventing runaway loops
+- Asymptote/blow-up detection with truncated=True
+- The f(x) candidate-overlay feature, both matching and non-matching cases
+
+Fast-forward merge to master, pushed, branch deleted. Workflow is starting
+to feel automatic.
+
+**Coverage:** 57% · **Tests:** 37 passing · **Commits on master:** 7
