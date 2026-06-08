@@ -56,3 +56,32 @@ Fast-forward merge to master, pushed, branch deleted. Workflow is starting
 to feel automatic.
 
 **Coverage:** 57% · **Tests:** 37 passing · **Commits on master:** 7
+
+### June 8 — Day 5: Symbolic differentiation and integration tests
+Created `symbolic-tests` branch and wrote 17 tests covering the
+`/differentiate` and `/integrate` endpoints. Coverage jumped from 57%
+to 88% — the symbolic routes were almost entirely untested before today.
+
+What's now verified:
+- Differentiation: chain rule, product rule, partial derivatives, higher
+  orders, variable list returned to the UI
+- Single integrals (definite and indefinite)
+- Double integrals — Cartesian, plus polar with automatic Jacobian
+  (unit disk area = π proves the `r` factor is being applied)
+- Triple integrals — spherical (unit ball = 4π/3, verifying ρ²sinφ),
+  cylindrical (volume = 2π, verifying r)
+- Line integrals — scalar (arc length 2π) and vector work (2π)
+- Flux integrals — 2D divergence theorem case (2π) and 3D through a
+  parametric disk (π)
+- Numeric fallback for non-elementary integrands (∫e^(-x²) → erf)
+- Sandbox still rejects malicious input on both symbolic endpoints
+
+One test caught a real boundary: `a*x + b*y` was rejected because `a`
+and `b` aren't in the variable whitelist. The test was wrong, not the
+code — but it documents the actual scope of the differentiator and could
+become a reason to expand the whitelist later if standard parameter
+notation matters. Tightened the test to use x, y, z and moved on.
+
+Fast-forward merge to master, pushed, branch deleted.
+
+**Coverage:** 88% · **Tests:** 55 passing · **Commits on master:** 9
