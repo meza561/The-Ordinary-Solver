@@ -3,7 +3,7 @@ Security tests for the AST whitelist validator.
 
 The point of these tests: every known way to escape a Python "sandbox" should
 be blocked by validate_and_compile. If any of these tests fails, the sandbox
-has a hole and the deployed app is potentially exploitable.
+has a hole and the deployed core is potentially exploitable.
 
 Empty __builtins__ alone is NOT a sandbox — Python's attribute access lets you
 walk from any object to dangerous classes (the classic ().__class__.__bases__

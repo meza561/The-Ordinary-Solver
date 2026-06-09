@@ -1,5 +1,5 @@
 """
-Parser tests for app.parse_expr.
+Parser tests for core.parse_expr.
 
 These verify that LaTeX from MathLive (and plain text) is converted to a
 Python-friendly expression string correctly. The two ydy/yddy tests are
