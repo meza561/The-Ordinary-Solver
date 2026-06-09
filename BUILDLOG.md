@@ -85,3 +85,38 @@ notation matters. Tightened the test to use x, y, z and moved on.
 Fast-forward merge to master, pushed, branch deleted.
 
 **Coverage:** 88% · **Tests:** 55 passing · **Commits on master:** 9
+
+### June 9 — Day 6: Regression reference implementation + tests
+Created `regression-tests` branch and added the first non-trivial library
+module: `core/utils/regression.py` — a pure-Python reference implementation
+of every fit the LSRL and Nonlinear Fit tabs offer (linear, polynomial,
+exponential, power, logarithmic).
+
+The actual fits still run client-side in script.js for instant feedback,
+but the Python module is now the authoritative source of truth: if the
+JS and Python disagree on a fit, the Python is right. Same pattern real
+engineering teams use for production-fast code with slow-but-correct
+reference implementations.
+
+Module is self-contained — pure Python, no numpy dependency, including a
+small Gauss-Jordan solver with partial pivoting for the polynomial normal
+equations. Easier to audit, easier to port to other languages later if
+needed.
+
+19 tests verify everything: parser accepts comma/space/tab separators
+and skips junk lines, linear fit recovers exact coefficients on perfect
+data, exponential/power fits recover (3, 0.5) and (2, 1.5) parameters
+within 1e-10, polynomial fits recover known quadratic and cubic
+coefficients, R² is correct for perfect fits and zero for mean
+predictions, and every fit type rejects invalid data (non-positive y
+for exponential, non-positive x for power and log).
+
+Hit a Python packaging gotcha during setup: created an `app/` package
+that collided with the existing `app.py` file, breaking all imports.
+Renamed the new package to `core/`. Real engineering lesson — package
+names matter and Python's import resolution isn't always obvious.
+
+Fast-forward merge to master, pushed, branch deleted.
+
+**Coverage:** 88% on app.py (regression module separate, fix tomorrow)
+· **Tests:** 74 passing · **Commits on master:** 11
