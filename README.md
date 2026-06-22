@@ -4,6 +4,24 @@ A web-based math workbench with eight tabs: solve ODEs, differentiate and integr
 
 Built with Flask, SymPy, NumPy, and Plotly.
 
+## Status
+
+![Tests](https://img.shields.io/badge/tests-86%20passing-success)
+![Coverage](https://img.shields.io/badge/coverage-95%25-success)
+![Python](https://img.shields.io/badge/python-3.14-blue)
+
+## Development
+
+Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+Run tests with coverage:
+```bash
+pytest
+```
+
 ## Features
 
 - **ODE Solver** — RK4 integration for open-form single ODEs (`y'' + 3y' + 4y = 0`, `y' = x/y`, etc.; order auto-detected) and 2D systems. Optional candidate-solution overlay with a match/differ verdict.
@@ -32,3 +50,4 @@ Then open `http://127.0.0.1:5000` in your browser.
 ## Notes
 
 This is a personal learning project; user expressions are validated through an AST whitelist before evaluation, but I don't recommend exposing it to the open internet without further review.
+
