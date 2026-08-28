@@ -4,3 +4,6 @@ sympy
 gunicorn
 pytest
 pytest-cov
+flask-login
+flask-sqlalchemy
+werkzeug
