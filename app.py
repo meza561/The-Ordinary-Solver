@@ -18,12 +18,25 @@ import ast
 import math
 import os
 import re
+from auth import db, login_manager
 
 import numpy as np
 from flask import Flask, jsonify, render_template, request
 
 app = Flask(__name__)
 
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-key-change-me")
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///users.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+db.init_app(app)
+login_manager.init_app(app)
+
+from auth_routes import auth_bp
+app.register_blueprint(auth_bp)
+
+with app.app_context():
+    db.create_all()
 # ----------------------------------------------------------------------------
 # Safe evaluation environment
 # ----------------------------------------------------------------------------
