@@ -17,6 +17,12 @@ def register():
         if not username or not password:
             flash("Username and password are required.", "error")
             return render_template("register.html")
+        if len(username) < 3:
+            flash("Username must be at least 3 characters.", "error")
+            return render_template("register.html")
+        if len(password) < 8:
+            flash("Password must be at least 8 characters.", "error")
+            return render_template("register.html")
 
         existing = User.query.filter_by(username=username).first()
         if existing:

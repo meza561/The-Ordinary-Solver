@@ -19,6 +19,15 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="min-h-screen transition-colors duration-200">
+<nav style="position:fixed;top:0.5rem;right:1rem;z-index:9999;display:flex;gap:0.75rem;font-size:0.85rem;font-family:system-ui,sans-serif;">
+    {% if current_user.is_authenticated %}
+        <span>{{ current_user.username }}</span>
+        <a href="{{ url_for('auth.logout') }}" style="color:#2563eb;text-decoration:none;">Log out</a>
+    {% else %}
+        <a href="{{ url_for('auth.login') }}" style="color:#2563eb;text-decoration:none;">Log in</a>
+        <a href="{{ url_for('auth.register') }}" style="color:#2563eb;text-decoration:none;">Register</a>
+    {% endif %}
+</nav>
 <div class="container mx-auto px-4 py-6 max-w-6xl">
 
     <!-- ===== Header ===== -->
