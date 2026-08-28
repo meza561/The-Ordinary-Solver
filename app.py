@@ -32,6 +32,9 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 login_manager.init_app(app)
 
+from auth_routes import auth_bp
+app.register_blueprint(auth_bp)
+
 with app.app_context():
     db.create_all()
 # ----------------------------------------------------------------------------

@@ -47,7 +47,7 @@ def login():
 
         login_user(user)
         flash("Logged in successfully.", "success")
-        return redirect(url_for("main.index"))
+        return redirect(url_for("index"))
 
     return render_template("login.html")
 
