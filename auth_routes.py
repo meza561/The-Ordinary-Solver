@@ -51,7 +51,8 @@ def login():
             flash("Invalid username or password.", "error")
             return render_template("login.html")
 
-        login_user(user)
+        remember = bool(request.form.get("remember"))
+        login_user(user, remember=remember)
         flash("Logged in successfully.", "success")
         return redirect(url_for("index"))
 
