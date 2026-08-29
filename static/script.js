@@ -185,6 +185,11 @@ tabButtons.forEach((btn) => {
                 method: "POST", headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             });
+            if (res.status === 401) {
+                const { login_url } = await res.json();
+                window.location.href = login_url + "?next=" + encodeURIComponent(window.location.pathname);
+                return;
+            }
             const data = await res.json();
             if (data.error) {
                 previewDiv.innerHTML =
@@ -625,6 +630,11 @@ function box(k, v) {
                     order: orderSel.value,
                 }),
             });
+            if (res.status === 401) {
+                const { login_url } = await res.json();
+                window.location.href = login_url + "?next=" + encodeURIComponent(window.location.pathname);
+                return;
+            }
             const d = await res.json();
             if (d.error) {
                 resultEl.innerHTML = `<span style="color:#ef4444">${d.error}</span>`;
@@ -809,6 +819,11 @@ function box(k, v) {
                 method: "POST", headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(p),
             });
+            if (res.status === 401) {
+                const { login_url } = await res.json();
+                window.location.href = login_url + "?next=" + encodeURIComponent(window.location.pathname);
+                return;
+            }
             const d = await res.json();
             if (d.error) { statusEl.textContent = d.error; resultEl.textContent = "\u2014"; return; }
             statusEl.textContent = "";

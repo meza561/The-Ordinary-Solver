@@ -16,7 +16,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 db = SQLAlchemy()
 login_manager = LoginManager()
-login_manager.login_view = "login"
+login_manager.login_view = "auth.login"
 
 
 class User(UserMixin, db.Model):
@@ -39,3 +39,18 @@ class User(UserMixin, db.Model):
 @login_manager.user_loader
 def load_user(user_id: str) -> User | None:
     return db.session.get(User, int(user_id))
+
+from flask import jsonify, request
+
+
+@login_manager.unauthorized_handler
+def unauthorized():
+    """Return JSON 401 for AJAX/JSON requests; redirect to login for browser navigation."""
+    from flask import redirect, url_for
+    wants_json = (
+        request.accept_mimetypes.accept_json
+        and not request.accept_mimetypes.accept_html
+    ) or request.is_json
+    if wants_json:
+        return jsonify(error="login_required", login_url=url_for("auth.login")), 401
+    return redirect(url_for("auth.login", next=request.url))
