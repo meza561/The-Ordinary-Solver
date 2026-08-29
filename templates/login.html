@@ -18,6 +18,15 @@
     </style>
 </head>
 <body>
+<nav style="position:fixed;top:0.5rem;right:1rem;z-index:9999;display:flex;gap:0.75rem;font-size:0.85rem;font-family:system-ui,sans-serif;">
+    <a href="{{ url_for('index') }}" style="color:#2563eb;text-decoration:none;">Home</a>
+    {% if current_user.is_authenticated %}
+        <span>{{ current_user.username }}</span>
+        <a href="{{ url_for('auth.logout') }}" style="color:#2563eb;text-decoration:none;">Log out</a>
+    {% else %}
+        <a href="{{ url_for('auth.register') }}" style="color:#2563eb;text-decoration:none;">Register</a>
+    {% endif %}
+</nav>
     <h1>Login</h1>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
