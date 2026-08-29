@@ -19,7 +19,7 @@ import math
 import os
 import re
 from auth import db, login_manager
-
+from flask_login import login_required
 import numpy as np
 from flask import Flask, jsonify, render_template, request
 
@@ -309,6 +309,7 @@ def eval_closed_form(expr, indep_array, var):
 # Routes
 # ----------------------------------------------------------------------------
 @app.route("/solve", methods=["POST"])
+@login_required
 def solve():
     data = request.get_json(force=True, silent=True) or {}
     mode = data.get("mode", "single")  # 'single' (open-form ODE) | 'system'
@@ -406,6 +407,7 @@ def describe_single(eq_raw, order):
 # Symbolic differentiation
 # ----------------------------------------------------------------------------
 @app.route("/differentiate", methods=["POST"])
+@login_required
 def differentiate():
     data = request.get_json(force=True, silent=True) or {}
     try:
@@ -475,6 +477,7 @@ def _finish(integral):
 
 
 @app.route("/integrate", methods=["POST"])
+@login_required
 def integrate_route():
     data = request.get_json(force=True, silent=True) or {}
     kind = data.get("kind", "single")
